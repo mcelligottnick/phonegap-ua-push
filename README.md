@@ -28,7 +28,6 @@ Please see the AppGyver guide for Push Notifications.
 1. Install this plugin to AppGyver build service and build a custom scanner.
 
 2. Modify the www/config.{ios,android}.xml file to contain (replacing with your configuration settings):
-
         <preference name="com.urbanairship.production_app_key" value="Your production app key" />
         <preference name="com.urbanairship.production_app_secret" value="Your production app secret" />
         <preference name="com.urbanairship.in_production" value="true" />
