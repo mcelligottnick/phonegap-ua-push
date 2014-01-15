@@ -64,6 +64,11 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
         config.inProduction = [[settings valueForKey:@"com.urbanairship.in_production"] boolValue];
     }
 
+    // NM - TODO
+    // may have to remove, or set this to false
+    BOOL enablePushOnLaunch = [[settings valueForKey:@"com.urbanairship.enable_push_onlaunch"] boolValue];
+    [UAPush setDefaultPushEnabledValue:enablePushOnLaunch];
+
     // Create Airship singleton that's used to talk to Urban Airship servers.
     // Please populate AirshipConfig.plist with your info from http://go.urbanairship.com
     [UAirship takeOff:config];
