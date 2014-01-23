@@ -45,6 +45,31 @@ A ```PushNotification``` object will be available in your application's global J
 
 Please follow the AppGyver Push Notification Guide (#TODO: Link here) for information how to create relevant certificates and configure the AppGyver Build Service.
 
+#### Basic Example
+
+    // Register for any urban airship events
+    document.addEventListener("urbanairship.registration", function (event) {
+        if (event.error) {
+            console.log('there was an error registering for push notifications');
+        } else {
+            console.log("Registered with ID: " + event.pushID);
+        } 
+    }, false)
+
+    document.addEventListener("urbanairship.push", function (event) {
+        console.log("Incoming push: " + event.message)
+    }, false)
+
+    // Set tags on a device, that you can push to
+    // https://docs.urbanairship.com/display/DOCS/Server%3A+Tag+API
+    PushNotification.setTags(["loves_cats", "shops_for_games"], function () {
+        PushNotification.getTags(function (obj) {
+            obj.tags.forEach(function (tag) {
+                console.log("Tag: " + tag);
+            });
+        });
+    });
+
 A thing to remember: All certificates must be created for Apple's production push notification service! Developer certificates are only for Xcode. Since Build Service will provide you with an ad hoc build, you will need to set up everything as if you were running a production app. Likewise with Urban Airship: You need to configure your application to act in production mode.
 
 
