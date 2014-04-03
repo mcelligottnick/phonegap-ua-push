@@ -23,6 +23,13 @@ Differences to the original include:
 
 ### Installation
 
+#### Automatic Installation using PhoneGap/Cordova CLI (iOS and Android)
+
+1. Install this plugin using PhoneGap/Cordova cli:
+```
+phonegap plugin add https://github.com/urbanairship/phonegap-ua-push.git
+``` 
+
 Please see the AppGyver guide for Push Notifications.
 
 1. Install this plugin to AppGyver build service and build a custom scanner.
