@@ -27,7 +27,7 @@ Differences to the original include:
 
 1. Install this plugin using PhoneGap/Cordova cli:
 ```
-phonegap plugin add https://github.com/urbanairship/phonegap-ua-push.git
+phonegap local plugin add https://github.com/urbanairship/phonegap-ua-push.git
 ``` 
 
 Please see the AppGyver guide for Push Notifications.
