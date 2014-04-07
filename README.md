@@ -76,6 +76,14 @@ Please follow the AppGyver Push Notification Guide (#TODO: Link here) for inform
             });
         });
     });
+    
+    // Set an alias, this lets you tie a device to a user in your system
+    // https://docs.urbanairship.com/display/DOCS/Server%3A+iOS+Push+API#ServeriOSPushAPI-Alias
+    PushNotification.setAlias("awesomeuser22", function () {
+        PushNotification.getAlias(function (alias) {
+            console.log("The user formerly known as " + alias)
+        });
+    });
 
 A thing to remember: All certificates must be created for Apple's production push notification service! Developer certificates are only for Xcode. Since Build Service will provide you with an ad hoc build, you will need to set up everything as if you were running a production app. Likewise with Urban Airship: You need to configure your application to act in production mode.
 
@@ -147,7 +155,7 @@ On iOS, registration for push requires specifying what combination of badges, so
 alerts are desired.  This function must be explicitly called in order to begin the
 registration process.  For example:
 
-    push.registerForNotificationTypes(push.notificationType.sound | push.notificationType.alert)
+    PushNotification.registerForNotificationTypes(PushNotification.notificationType.sound | PushNotification.notificationType.alert)
 
 *Available notification types:*
 
@@ -161,7 +169,7 @@ registration process.  For example:
 
 All status callbacks are passed a boolean indicating the result of the request:
 
-    push.isPushEnabled(function (has_push) {
+    PushNotification.isPushEnabled(function (has_push) {
         if (has_push) {
             $('#pushEnabled').prop("checked", true)
         }
@@ -219,7 +227,7 @@ Indicates whether Quiet Time is currently in effect.
 
 Get information about the push that caused the application to be launched. When a user clicks on a push to launch your app, this functions callback will be passed a Push object consisting of the alert message, and an object containing extra key/value pairs.  Otherwise the incoming message and extras will be an empty string and an empty object, respectively.
 
-    push.getIncoming(function (incoming) {
+    PushNotification.getIncoming(function (incoming) {
         if (incoming.message) {
             alert("Incoming push message: " + incoming.message;
         }
