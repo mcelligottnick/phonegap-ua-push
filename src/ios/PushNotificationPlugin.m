@@ -75,7 +75,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
     [[UAPush shared] resetBadge];//zero badge on startup
     [UAPush shared].pushNotificationDelegate = self;
-    [[UAPush shared] addObserver:self];
+    [UAPush shared].registrationDelegate = self;
 
     [[UAirship shared].locationService startReportingSignificantLocationChanges];
 }
@@ -608,12 +608,20 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 #pragma mark Other stuff
 
 - (void)dealloc {
+//<<<<<<< HEAD
     if([UAPush shared].pushNotificationDelegate == self){
         //only remove the delegate if this is the webview/plugin that is currently receiving
         //the delegate notifications.
         [UAPush shared].pushNotificationDelegate = nil;
+        
+        // NM - TODO - added this from below
+        [UAPush shared].registrationDelegate = nil;
     }
     [[UAPush shared] removeObserver:self];
+//=======
+//    [UAPush shared].pushNotificationDelegate = nil;
+//    [UAPush shared].registrationDelegate = nil;
+//>>>>>>> Update to iOS sdk 4.0.0.
 
 }
 
