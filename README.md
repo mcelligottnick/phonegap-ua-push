@@ -6,11 +6,17 @@ This plugin supports apps running on iOS.
 
 ### Version Requirements
 
+<<<<<<< HEAD
 This plugin is meant to work with AppGyver Steroids 3.1.0+.
+This plugin is meant to work with Cordova 3.4.1+ and the latest version of the Urban Airship library.
 
 ### Differences to the original plugin
 
+<<<<<<< HEAD
 This plugin has been forked from the [official Urban Airship plugin](https://github.com/urbanairship/phonegap-ua-push).
+
+Then rebased against the upstream UA plugin.
+
 
 Differences to the original include:
 
@@ -22,15 +28,6 @@ Differences to the original include:
 
 
 ### Installation
-
-#### Automatic Installation using PhoneGap/Cordova CLI (iOS and Android)
-
-1. Install this plugin using PhoneGap/Cordova cli:
-```
-phonegap local plugin add https://github.com/urbanairship/phonegap-ua-push.git
-``` 
-
-Please see the AppGyver guide for Push Notifications.
 
 1. Install this plugin to AppGyver build service and build a custom scanner.
 
