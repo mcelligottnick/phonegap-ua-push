@@ -6,13 +6,11 @@ This plugin supports apps running on iOS.
 
 ### Version Requirements
 
-<<<<<<< HEAD
 This plugin is meant to work with AppGyver Steroids 3.1.0+.
 This plugin is meant to work with Cordova 3.4.1+ and the latest version of the Urban Airship library.
 
 ### Differences to the original plugin
 
-<<<<<<< HEAD
 This plugin has been forked from the [official Urban Airship plugin](https://github.com/urbanairship/phonegap-ua-push).
 
 Then rebased against the upstream UA plugin.
