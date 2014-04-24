@@ -574,6 +574,34 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 }
 
 
+//<<<<<<< HEAD
+//#pragma mark UARegistrationObservers
+//- (void)registerDeviceTokenSucceeded {
+//    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications");
+//
+//    [self raiseRegistration:YES withpushID:[UAirship shared].deviceToken];
+//}
+//
+//- (void)registerDeviceTokenFailed:(UAHTTPRequest *)request {
+//    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications with request: %@", request);
+//
+//    [self raiseRegistration:NO withpushID:@""];
+//=======
+//#pragma mark UARegistrationDelegate
+//- (void)registrationSucceededForChannelID:(NSString *)channelID deviceToken:(NSString *)deviceToken {
+//    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications.");
+//    
+//    [self raiseRegistration:YES withpushID:deviceToken];
+//}
+//
+//- (void)registrationFailed {
+//    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications.");
+//    
+//    [self raiseRegistration:NO withpushID:@""]; 
+//>>>>>>> Replaced deprecated UARegistrationObservers methods with UARegistrationDelegate methods.
+//}
+
+// NM - TODO - Merged this commit to keep deprecated functions incase
 #pragma mark UARegistrationObservers
 - (void)registerDeviceTokenSucceeded {
     UA_LINFO(@"PushNotificationPlugin: registered for remote notifications");
@@ -586,6 +614,21 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
     [self raiseRegistration:NO withpushID:@""];
 }
+
+#pragma mark UARegistrationDelegate
+- (void)registrationSucceededForChannelID:(NSString *)channelID deviceToken:(NSString *)deviceToken {
+    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications.");
+
+    [self raiseRegistration:YES withpushID:deviceToken];
+}
+
+- (void)registrationFailed {
+    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications.");
+
+    [self raiseRegistration:NO withpushID:@""];
+}
+// end merged functions
+
 
 #pragma mark UAPushNotificationDelegate
 - (void)launchedFromNotification:(NSDictionary *)notification {
