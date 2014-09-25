@@ -67,7 +67,8 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
     // NM - TODO
     // may have to remove, or set this to false
     BOOL enablePushOnLaunch = [[settings valueForKey:@"com.urbanairship.enable_push_onlaunch"] boolValue];
-    [UAPush setDefaultPushEnabledValue:enablePushOnLaunch];
+    
+    [UAPush shared].userPushNotificationsEnabledByDefault = enablePushOnLaunch;
 
     // Create Airship singleton that's used to talk to Urban Airship servers.
     // Please populate AirshipConfig.plist with your info from http://go.urbanairship.com
@@ -95,7 +96,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
             if (![[args objectAtIndex:i] isKindOfClass:[types objectAtIndex:i]]) {
                 //fail when when there is a type mismatch an expected and passed parameter
                 UA_LERR(@"Type mismatch in cordova callback: expected %@ and received %@",
-                      [types description], [args description]);
+                        [types description], [args description]);
                 return NO;
             }
         }
@@ -273,9 +274,12 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
         id obj = [command.arguments objectAtIndex:0];
 
         if ([obj isKindOfClass:[NSNumber class]]) {
-            UIRemoteNotificationType bitmask = [obj intValue];
+            UIUserNotificationType bitmask = [obj intValue];
             UALOG(@"bitmask value: %d", [obj intValue]);
-            [[UAPush shared] registerForRemoteNotificationTypes:bitmask];
+
+            [UAPush shared].userNotificationTypes = bitmask;
+            [[UAPush shared] updateRegistration];
+
             CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
             [self writeJavascript: [result toSuccessCallbackString:command.callbackId]];
         } else {
@@ -293,7 +297,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
 - (void)enablePush:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:nil withVoidBlock:^(NSArray *args){
-        [UAPush shared].pushEnabled = YES;
+        [UAPush shared].userPushNotificationsEnabled = YES;
         //forces a reregistration
         [[UAPush shared] updateRegistration];
     }];
@@ -301,7 +305,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
 - (void)disablePush:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:nil withVoidBlock:^(NSArray *args){
-        [UAPush shared].pushEnabled = NO;
+        [UAPush shared].userPushNotificationsEnabled = NO;
         //forces a reregistration
         [[UAPush shared] updateRegistration];
     }];
@@ -337,7 +341,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
 - (void)isPushEnabled:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
-        BOOL enabled = [UAPush shared].pushEnabled;
+        BOOL enabled = [UAPush shared].userPushNotificationsEnabled;
         return [NSNumber numberWithBool:enabled];
     }];
 }
@@ -520,22 +524,8 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
         id endHr = [args objectAtIndex:2];
         id endMin = [args objectAtIndex:3];
 
-        NSDate *startDate;
-        NSDate *endDate;
+        [[UAPush shared] setQuietTimeStartHour:[startHr integerValue] startMinute:[startMin integerValue] endHour:[endHr integerValue] endMinute:[endMin integerValue]];
 
-        NSCalendar *gregorian = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-        NSDateComponents *startComponents = [gregorian components:NSYearCalendarUnit fromDate:[NSDate date]];
-        NSDateComponents *endComponents = [gregorian components:NSYearCalendarUnit fromDate:[NSDate date]];
-
-        startComponents.hour = [startHr intValue];
-        startComponents.minute =[startMin intValue];
-        endComponents.hour = [endHr intValue];
-        endComponents.minute = [endMin intValue];
-
-        startDate = [gregorian dateFromComponents:startComponents];
-        endDate = [gregorian dateFromComponents:endComponents];
-
-        [[UAPush shared] setQuietTimeFrom:startDate to:endDate withTimeZone:[NSTimeZone localTimeZone]];
         [[UAPush shared] updateRegistration];
     }];
 }
@@ -676,7 +666,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
                                                            delegate:self
                                                   cancelButtonTitle:@"OK"
                                                   otherButtonTitles:nil];
-
+        
         [someError show];
     }
 }
