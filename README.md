@@ -39,6 +39,7 @@ Differences to the original include:
 
 3. If your app supports Android API < 14, then you have to manually instrument any Android Activities to
 have proper analytics.
+
 See [Instrumenting Android Analytics](http://docs.urbanairship.com/build/android_features.html#setting-up-analytics-minor-assembly-required).
 
 ### Usage:
