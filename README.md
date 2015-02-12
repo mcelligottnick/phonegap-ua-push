@@ -7,7 +7,7 @@ This plugin supports apps running on iOS.
 ### Version Requirements
 
 This plugin is meant to work with AppGyver Steroids 3.1.0+.
-This plugin is meant to work with Cordova 3.4.1+ and the latest version of the Urban Airship library.
+This plugin is meant to work with Cordova 4.0.0+ and the latest version of the Urban Airship library.
 
 ### Differences to the original plugin
 
