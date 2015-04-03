@@ -483,6 +483,12 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
     }];
 }
 
+- (void)getBadgeNumber:(CDVInvokedUrlCommand*)command {
+    [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
+        return @([UIApplication sharedApplication].applicationIconBadgeNumber);
+    }];
+}
+
 //setters
 
 - (void)setTags:(CDVInvokedUrlCommand*)command {
