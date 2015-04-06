@@ -35,48 +35,39 @@ typedef id (^UACordovaCallbackBlock)(NSArray *args);
 typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
 @interface PushNotificationPlugin()
+- (void)takeOff;
 @property (nonatomic, copy) NSDictionary *incomingNotification;
 @end
 
 @implementation PushNotificationPlugin
 
-NSString *const ProductionAppKeyConfigKey = @"com.urbanairship.production_app_key";
-NSString *const ProductionAppSecretConfigKey = @"com.urbanairship.production_app_secret";
-NSString *const DevelopmentAppKeyConfigKey = @"com.urbanairship.development_app_key";
-NSString *const DevelopmentAppSecretConfigKey = @"com.urbanairship.development_app_secret";
-NSString *const ProductionConfigKey = @"com.urbanairship.in_production";
-NSString *const EnablePushOnLaunchConfigKey = @"com.urbanairship.enable_push_onlaunch";
-NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onlaunch";
-
 - (void)pluginInitialize {
     UA_LINFO("Initializing PushNotificationPlugin");
-
-    UA_LINFO("Not enabling push notifications by default, to provide app with more control");
-    [UAPush setDefaultPushEnabledValue:NO];
-
-    dispatchQueue =  dispatch_queue_create("com.urbanairship.push_plugin", DISPATCH_QUEUE_SERIAL);
+    [self takeOff];
 }
 
 - (void)takeOff {
+    //Init Airship launch options
+    UAConfig *config = [UAConfig defaultConfig];
+
     NSDictionary *settings = self.commandDelegate.settings;
 
-    UAConfig *config = [UAConfig config];
-    config.productionAppKey = settings[ProductionAppKeyConfigKey];
-    config.productionAppSecret = settings[ProductionAppSecretConfigKey];
-    config.developmentAppKey = settings[DevelopmentAppKeyConfigKey];
-    config.developmentAppSecret = settings[DevelopmentAppSecretConfigKey];
-    config.inProduction = [settings[ProductionConfigKey] boolValue];
+    config.productionAppKey = [settings valueForKey:@"com.urbanairship.production_app_key"] ?: config.productionAppKey;
+    config.productionAppSecret = [settings valueForKey:@"com.urbanairship.production_app_secret"] ?: config.productionAppSecret;
+    config.developmentAppKey = [settings valueForKey:@"com.urbanairship.development_app_key"] ?: config.developmentAppKey;
+    config.developmentAppSecret = [settings valueForKey:@"com.urbanairship.development_app_secret"] ?: config.developmentAppSecret;
+    if ([settings valueForKey:@"com.urbanairship.in_production"]) {
+        config.inProduction = [[settings valueForKey:@"com.urbanairship.in_production"] boolValue];
+    }
+
+    BOOL enablePushOnLaunch = [[settings valueForKey:@"com.urbanairship.enable_push_onlaunch"] boolValue];
+    [UAirship push].userPushNotificationsEnabledByDefault = enablePushOnLaunch;
 
     // Create Airship singleton that's used to talk to Urban Airship servers.
     // Please populate AirshipConfig.plist with your info from http://go.urbanairship.com
     [UAirship takeOff:config];
 
-    [UAirship push].userPushNotificationsEnabledByDefault = [settings[EnablePushOnLaunchConfigKey] boolValue];
-
-    if (settings[ClearBadgeOnLaunchConfigKey] == nil || [settings[ClearBadgeOnLaunchConfigKey] boolValue]) {
-        [[UAirship push] resetBadge];
-    }
-
+    [[UAirship push] resetBadge];//zero badge on startup
     [UAirship push].pushNotificationDelegate = self;
     [UAirship push].registrationDelegate = self;
 
@@ -240,17 +231,10 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
     UA_LTRACE(@"js callback: %@", js);
 }
 
-- (void)raiseRegistration:(BOOL)valid withpushID:(NSString *)pushID {
-
-    if (!pushID) {
-        UA_LDEBUG(@"PushNotificationPlugin: attempted to raise registration with nil pushID");
-        pushID = @"";
-        valid = NO;
-    }
-
+- (void)raiseRegistration:(BOOL)valid channelID:(NSString *)channelID {
     NSMutableDictionary *data = [NSMutableDictionary dictionary];
     if (valid) {
-        [data setObject:pushID forKey:@"pushID"];
+        [data setValue:channelID forKey:@"channelID"];
     } else {
         [data setObject:@"Registration failed." forKey:@"error"];
     }
@@ -264,10 +248,6 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
 }
 
 //registration
-
-- (void)takeOff:(CDVInvokedUrlCommand*) command {
-    [self takeOff];
-}
 
 - (void)registerForNotificationTypes:(CDVInvokedUrlCommand*)command {
     UA_LDEBUG(@"PushNotificationPlugin: register for notification types");
@@ -417,10 +397,9 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
     }];
 }
 
-- (void)getPushID:(CDVInvokedUrlCommand*)command {
+- (void)getChannelID:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
-        NSString *pushID = [UAirship push].deviceToken ?: @"";
-        return pushID;
+        return [UAirship push].channelID ?: @"";
     }];
 }
 
@@ -483,12 +462,6 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
     }];
 }
 
-- (void)getBadgeNumber:(CDVInvokedUrlCommand*)command {
-    [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
-        return @([UIApplication sharedApplication].applicationIconBadgeNumber);
-    }];
-}
-
 //setters
 
 - (void)setTags:(CDVInvokedUrlCommand*)command {
@@ -534,7 +507,6 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
 
         [[UAirship push] setQuietTimeStartHour:[startHr integerValue] startMinute:[startMin integerValue] endHour:[endHr integerValue] endMinute:[endMin integerValue]];
         [[UAirship push] updateRegistration];
-
     }];
 }
 
@@ -572,62 +544,16 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
 }
 
 
-//<<<<<<< HEAD
-//#pragma mark UARegistrationObservers
-//- (void)registerDeviceTokenSucceeded {
-//    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications");
-//
-//    [self raiseRegistration:YES withpushID:[UAirship shared].deviceToken];
-//}
-//
-//- (void)registerDeviceTokenFailed:(UAHTTPRequest *)request {
-//    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications with request: %@", request);
-//
-//    [self raiseRegistration:NO withpushID:@""];
-//=======
-//#pragma mark UARegistrationDelegate
-//- (void)registrationSucceededForChannelID:(NSString *)channelID deviceToken:(NSString *)deviceToken {
-//    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications.");
-//    
-//    [self raiseRegistration:YES withpushID:deviceToken];
-//}
-//
-//- (void)registrationFailed {
-//    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications.");
-//    
-//    [self raiseRegistration:NO withpushID:@""]; 
-//>>>>>>> Replaced deprecated UARegistrationObservers methods with UARegistrationDelegate methods.
-//}
-
-// NM - TODO - Merged this commit to keep deprecated functions incase
-#pragma mark UARegistrationObservers
-- (void)registerDeviceTokenSucceeded {
-    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications");
-
-    [self raiseRegistration:YES withpushID:[UAirship shared].deviceToken];
-}
-
-- (void)registerDeviceTokenFailed:(UAHTTPRequest *)request {
-    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications with request: %@", request);
-
-    [self raiseRegistration:NO withpushID:@""];
-}
-
 #pragma mark UARegistrationDelegate
 - (void)registrationSucceededForChannelID:(NSString *)channelID deviceToken:(NSString *)deviceToken {
-    UA_LINFO(@"PushNotificationPlugin: registered for remote notifications.");
-    if (deviceToken) {
-        [self raiseRegistration:YES withpushID:deviceToken];
-    }
+    UA_LINFO(@"PushNotificationPlugin: channel registration successful %@.", channelID);
+    [self raiseRegistration:YES channelID:channelID];
 }
 
 - (void)registrationFailed {
-    UA_LINFO(@"PushNotificationPlugin: Failed to register for remote notifications.");
-
-    [self raiseRegistration:NO withpushID:@""];
+    UA_LINFO(@"PushNotificationPlugin: channel registration failed.");
+    [self raiseRegistration:NO channelID:[UAirship push].channelID];
 }
-// end merged functions
-
 
 #pragma mark UAPushNotificationDelegate
 - (void)launchedFromNotification:(NSDictionary *)notification {
@@ -650,19 +576,9 @@ NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onl
 #pragma mark Other stuff
 
 - (void)dealloc {
-    if([UAPush shared].pushNotificationDelegate == self){
-        //only remove the delegate if this is the webview/plugin that is currently receiving
-        //the delegate notifications.
-        [UAPush shared].pushNotificationDelegate = nil;
-        
-        // NM - TODO - added this from below
-        [UAPush shared].registrationDelegate = nil;
-    }
-    [[UAPush shared] removeObserver:self];
-    //=======
-    //    [UAPush shared].pushNotificationDelegate = nil;
-    //    [UAPush shared].registrationDelegate = nil;
-    //>>>>>>> Update to iOS sdk 4.0.0.
+    [UAirship push].pushNotificationDelegate = nil;
+    [UAirship push].registrationDelegate = nil;
+
 }
 
 - (void)failIfSimulator {
