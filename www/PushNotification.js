@@ -92,6 +92,9 @@ var plugin = {
     callNative(callback, "setAnalyticsEnabled", [enabled])
   },
 
+  isAnalyticsEnabled: function(callback) {
+    callNative(callback, "isAnalyticsEnabled")
+  },
   // Location
 
   enableLocation: function(callback) {

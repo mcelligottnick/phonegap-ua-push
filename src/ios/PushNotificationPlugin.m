@@ -297,6 +297,13 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
     }];
 }
 
+- (void)isAnalyticsEnabled:(CDVInvokedUrlCommand*)command {
+    [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
+        BOOL enabled = [UAirship shared].analytics.enabled;
+        return [NSNumber numberWithBool:enabled];
+    }];
+}
+
 //getters
 
 - (void)isPushEnabled:(CDVInvokedUrlCommand*)command {
