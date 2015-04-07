@@ -447,6 +447,12 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
     }];
 }
 
+- (void)getNamedUser:(CDVInvokedUrlCommand*)command {
+    [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
+        return [UAirship push].namedUser.identifier ?: @"";
+    }];
+}
+
 //setters
 
 - (void)setTags:(CDVInvokedUrlCommand*)command {
@@ -472,6 +478,8 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
         [[UAirship push] updateRegistration];
     }];
 }
+
+
 
 - (void)setQuietTimeEnabled:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:[NSArray arrayWithObjects:[NSNumber class],nil] withVoidBlock:^(NSArray *args) {
@@ -508,6 +516,15 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
         id number = [args objectAtIndex:0];
         NSInteger badgeNumber = [number intValue];
         [[UAirship push] setBadgeNumber:badgeNumber];
+    }];
+}
+
+- (void)setNamedUser:(CDVInvokedUrlCommand*)command {
+    [self performCallbackWithCommand:command expecting:[NSArray arrayWithObjects:[NSString class],nil] withVoidBlock:^(NSArray *args) {
+        NSString *namedUserID = [args objectAtIndex:0];
+        namedUserID = [namedUserID stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+
+        [UAirship push].namedUser.identifier = [namedUserID length] ? namedUserID : nil;
     }];
 }
 
