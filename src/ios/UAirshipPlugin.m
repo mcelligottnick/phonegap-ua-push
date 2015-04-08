@@ -23,7 +23,7 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "PushNotificationPlugin.h"
+#import "UAirshipPlugin.h"
 #import "UAPush.h"
 #import "UAirship.h"
 #import "UAAnalytics.h"
@@ -34,42 +34,47 @@
 typedef id (^UACordovaCallbackBlock)(NSArray *args);
 typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
-@interface PushNotificationPlugin()
-- (void)takeOff;
+@interface UAirshipPlugin()
 @property (nonatomic, copy) NSDictionary *incomingNotification;
 @property (nonatomic, copy) NSString *registrationCallbackID;
 @property (nonatomic, copy) NSString *pushCallbackID;
 @end
 
-@implementation PushNotificationPlugin
+@implementation UAirshipPlugin
+
+NSString *const ProductionAppKeyConfigKey = @"com.urbanairship.production_app_key";
+NSString *const ProductionAppSecretConfigKey = @"com.urbanairship.production_app_secret";
+NSString *const DevelopmentAppKeyConfigKey = @"com.urbanairship.development_app_key";
+NSString *const DevelopmentAppSecretConfigKey = @"com.urbanairship.development_app_secret";
+NSString *const ProductionConfigKey = @"com.urbanairship.in_production";
+NSString *const EnablePushOnLaunchConfigKey = @"com.urbanairship.enable_push_onlaunch";
+NSString *const ClearBadgeOnLaunchConfigKey = @"com.urbanairship.clear_badge_onlaunch";
 
 - (void)pluginInitialize {
-    UA_LINFO("Initializing PushNotificationPlugin");
+    UA_LINFO("Initializing UrbanAirship cordova plugin.");
     [self takeOff];
 }
 
 - (void)takeOff {
-    //Init Airship launch options
-    UAConfig *config = [UAConfig defaultConfig];
-
     NSDictionary *settings = self.commandDelegate.settings;
 
-    config.productionAppKey = [settings valueForKey:@"com.urbanairship.production_app_key"] ?: config.productionAppKey;
-    config.productionAppSecret = [settings valueForKey:@"com.urbanairship.production_app_secret"] ?: config.productionAppSecret;
-    config.developmentAppKey = [settings valueForKey:@"com.urbanairship.development_app_key"] ?: config.developmentAppKey;
-    config.developmentAppSecret = [settings valueForKey:@"com.urbanairship.development_app_secret"] ?: config.developmentAppSecret;
-    if ([settings valueForKey:@"com.urbanairship.in_production"]) {
-        config.inProduction = [[settings valueForKey:@"com.urbanairship.in_production"] boolValue];
-    }
-
-    BOOL enablePushOnLaunch = [[settings valueForKey:@"com.urbanairship.enable_push_onlaunch"] boolValue];
-    [UAirship push].userPushNotificationsEnabledByDefault = enablePushOnLaunch;
+    UAConfig *config = [UAConfig config];
+    config.productionAppKey = settings[ProductionAppKeyConfigKey];
+    config.productionAppSecret = settings[ProductionAppSecretConfigKey];
+    config.developmentAppKey = settings[DevelopmentAppKeyConfigKey];
+    config.developmentAppSecret = settings[DevelopmentAppSecretConfigKey];
+    config.inProduction = [settings[ProductionConfigKey] boolValue];
 
     // Create Airship singleton that's used to talk to Urban Airship servers.
     // Please populate AirshipConfig.plist with your info from http://go.urbanairship.com
     [UAirship takeOff:config];
 
-    [[UAirship push] resetBadge];//zero badge on startup
+    [UAirship push].userPushNotificationsEnabledByDefault = [settings[EnablePushOnLaunchConfigKey] boolValue];
+
+    if (settings[ClearBadgeOnLaunchConfigKey] == nil || [settings[ClearBadgeOnLaunchConfigKey] boolValue]) {
+        [[UAirship push] resetBadge];
+    }
+
     [UAirship push].pushNotificationDelegate = self;
     [UAirship push].registrationDelegate = self;
 
@@ -220,7 +225,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 }
 
 - (void)registerForNotificationTypes:(CDVInvokedUrlCommand*)command {
-    UA_LDEBUG(@"PushNotificationPlugin: register for notification types");
+    UA_LDEBUG(@"Register for notification types");
     
     CDVPluginResult* pluginResult = nil;
     
@@ -435,6 +440,12 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
     }];
 }
 
+- (void)getBadgeNumber:(CDVInvokedUrlCommand*)command {
+    [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
+        return @([UIApplication sharedApplication].applicationIconBadgeNumber);
+    }];
+}
+
 - (void)getNamedUser:(CDVInvokedUrlCommand*)command {
     [self performCallbackWithCommand:command expecting:nil withBlock:^(NSArray *args){
         return [UAirship push].namedUser.identifier ?: @"";
@@ -535,7 +546,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 
 #pragma mark UARegistrationDelegate
 - (void)registrationSucceededForChannelID:(NSString *)channelID deviceToken:(NSString *)deviceToken {
-    UA_LINFO(@"PushNotificationPlugin: channel registration successful %@.", channelID);
+    UA_LINFO(@"Channel registration successful %@.", channelID);
 
     if (self.registrationCallbackID) {
         NSDictionary *data = @{ @"channelID":channelID };
@@ -546,7 +557,7 @@ typedef void (^UACordovaVoidCallbackBlock)(NSArray *args);
 }
 
 - (void)registrationFailed {
-    UA_LINFO(@"PushNotificationPlugin: channel registration failed.");
+    UA_LINFO(@"Channel registration failed.");
 
     if (self.registrationCallbackID) {
         NSDictionary *data = @{ @"error": @"Registration failed." };
