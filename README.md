@@ -7,7 +7,7 @@ This plugin supports apps running on iOS.
 ### Version Requirements
 
 This plugin is meant to work with AppGyver Steroids 3.1.0+.
-This plugin is meant to work with Cordova 4.0.0+ and the latest version of the Urban Airship library.
+This plugin is meant to work with Cordova 3.4.0+ and the latest version of the Urban Airship library.
 
 ### Differences to the original plugin
 
@@ -53,20 +53,20 @@ Please follow the AppGyver Push Notification Guide (#TODO: Link here) for inform
     // Register for any urban airship events
     document.addEventListener("urbanairship.registration", function (event) {
         if (event.error) {
-            console.log('there was an error registering for push notifications');
+            console.log('There was an error registering for push notifications');
         } else {
-            console.log("Registered with ID: " + event.pushID);
+            console.log("Registered with ID: " + event.channelID);
         } 
     }, false)
-
+    
     document.addEventListener("urbanairship.push", function (event) {
         console.log("Incoming push: " + event.message)
     }, false)
-
+    
     // Set tags on a device, that you can push to
     // https://docs.urbanairship.com/display/DOCS/Server%3A+Tag+API
-    PushNotification.setTags(["loves_cats", "shops_for_games"], function () {
-        PushNotification.getTags(function (obj) {
+    UAirship.setTags(["loves_cats", "shops_for_games"], function () {
+        UAirship.getTags(function (obj) {
             obj.tags.forEach(function (tag) {
                 console.log("Tag: " + tag);
             });
@@ -75,11 +75,18 @@ Please follow the AppGyver Push Notification Guide (#TODO: Link here) for inform
     
     // Set an alias, this lets you tie a device to a user in your system
     // https://docs.urbanairship.com/display/DOCS/Server%3A+iOS+Push+API#ServeriOSPushAPI-Alias
-    PushNotification.setAlias("awesomeuser22", function () {
-        PushNotification.getAlias(function (alias) {
+    UAirship.setAlias("awesomeuser22", function () {
+        UAirship.getAlias(function (alias) {
             console.log("The user formerly known as " + alias)
         });
     });
+    
+    // Check if user notifications are enabled
+    UAirship.isUserNotificationsEnabled(function (enabled) {
+        if (enabled) {
+            console.log("User notifications are enabled! Fire away!");
+        }
+    })
 
 A thing to remember: All certificates must be created for Apple's production push notification service! Developer certificates are only for Xcode. Since Build Service will provide you with an ad hoc build, you will need to set up everything as if you were running a production app. Likewise with Urban Airship: You need to configure your application to act in production mode.
 
@@ -97,6 +104,8 @@ The Urban Airship javascript API provides standard instances for some of our dat
         }
     }
 
+A push is an object that contains the data associated with a Push. The extras dictionary can contain arbitrary key and value data, that you can use inside your application.
+
 #### Quiet Time
 
     // Quiet time set to 10PM - 6AM
@@ -106,8 +115,6 @@ The Urban Airship javascript API provides standard instances for some of our dat
         endHour: 6,
         endMinute: 0
     }
-
-A push is an object that contains the data associated with a Push. The extras dictionary can contain arbitrary key and value data, that you can use inside your application.
 
 ## API
 
@@ -128,30 +135,26 @@ Enable push on the device. This sends a registration to the backend server.
 
 Disable push on the device. You will no longer be able to recieve push notifications.
 
-#### enableLocation()
+#### setUserNotificationsEnabled()
 
-Enable location updates on the device.
+Enables or disables user notifications on the device. This sends a registration to the back end server.
 
-#### disableLocation()
+#### setLocationEnabled()
 
-Disable location updates on the device.
+Enables or disables Urban Airship location services on the device.
 
-#### enableBackgroundLocation()
+#### setBackgroundLocationEnabled()
 
-Enable background location updates on the device.
+Enables or disables background location on the device.
 
-#### disableBackgroundLocation()
-
-Disable background location updates on the device.
-
-#### registerForNotificationTypes(bitmask)
+#### setNotificationTypes(bitmask)
 **Note::** iOS Only
 
 On iOS, registration for push requires specifying what combination of badges, sound and
-alerts are desired.  This function must be explicitly called in order to begin the
-registration process.  For example:
+alerts are desired. This function must be explicitly called in order to begin the
+registration process. For example:
 
-    PushNotification.registerForNotificationTypes(PushNotification.notificationType.sound | PushNotification.notificationType.alert)
+    UAirship.setNotificationTypes(UAirship.notificationType.sound | UAirship.notificationType.alert)
 
 *Available notification types:*
 
@@ -165,17 +168,17 @@ registration process.  For example:
 
 All status callbacks are passed a boolean indicating the result of the request:
 
-    PushNotification.isPushEnabled(function (has_push) {
-        if (has_push) {
+    UAirship.isUserNotificationsEnabled(function(isEnabled) {
+        if (isEnabled) {
             $('#pushEnabled').prop("checked", true)
         }
     })
 
-#### isPushEnabled(callback)
+#### isUserNotificationsEnabled(callback)
 
 *Callback arguments* (Boolean enabled)
 
-Indicates whether push is enabled.
+Indicates whether user notifications are enabled.
 
 #### isSoundEnabled(callback)
 **Note:** Android Only
@@ -197,6 +200,12 @@ Indicates whether vibration is enabled.
 
 Indicates whether Quiet Time is enabled.
 
+#### isAnalyticsEnabled(callback)
+
+*Callback arguments:* (Boolean enabled)
+
+Indicates whether analytics is enabled.
+
 #### isLocationEnabled(callback)
 
 *Callback arguments:* (Boolean enabled)
@@ -217,27 +226,17 @@ Indicates whether Quiet Time is currently in effect.
 
 ### Getters
 
-#### getIncoming(callback)
+#### getLaunchNotification(callback)
 
-*Callback arguments:* (Push incomingPush)
+*Callback arguments:* (Boolean clear)
 
-Get information about the push that caused the application to be launched. When a user clicks on a push to launch your app, this functions callback will be passed a Push object consisting of the alert message, and an object containing extra key/value pairs.  Otherwise the incoming message and extras will be an empty string and an empty object, respectively.
+Returns the last notification that launched the application and takes a boolean to clear the notification or not.
 
-    PushNotification.getIncoming(function (incoming) {
-        if (incoming.message) {
-            alert("Incoming push message: " + incoming.message;
-        }
+#### getChannelID(callback)
 
-        if (incoming.extras.url) {
-            showPage(incoming.extras.url);
-        }
-    })
+*Callback arguments:* (String ID)
 
-#### getPushID(callback)
-
-*Callback arguments:* (String id)
-
-Get the push identifier for the device. The push ID is used to send messages to the device for testing, and is the canoncial identifer for the device in Urban Airship.
+Get the push identifier for the device. The channel ID is used to send messages to the device for testing, and is the canonical identifier for the device in Urban Airship.
 
 **Note:** iOS will always have a push identifier. Android will always have one once the application has had a successful registration.
 
@@ -257,7 +256,20 @@ Get the current tags.
 
 *Callback arguments:* (String currentAlias)
 
-Get the current tags.
+Get the alias.
+
+#### getNamedUser(callback)
+
+*Callback arguments:* (String namedUser)
+
+Get the named user ID.
+
+#### getBadgeNumber(callback)
+**Note:** iOS only
+
+*Callback arguments:* (Int badgeNumber)
+
+Get the current application badge number.
 
 ### Setters
 
@@ -269,8 +281,12 @@ Set tags for the device.
 
 Set alias for the device.
 
+#### setNamedUser(String namedUser, callback)
+
+Set the named user ID for the device.
+
 #### setSoundEnabled(Boolean enabled, callback)
-**Note:** Android Only, iOS sound settings come in the push
+**Note:** Android Only, iOS sound settings come in the push.
 
 Set whether the device makes sound on push.
 
@@ -287,20 +303,24 @@ Set whether quiet time is on.
 
 Set the quiet time for the device.
 
+#### setAnalyticsEnabled(Boolean enabled, callback)
+
+Enables or disables analytics. Disabling analytics will delete any locally stored events and prevent any events from uploading. Features that depend on analytics being enabled may not work properly if it's disabled (reports, region triggers, location segmentation, push to local time).
+
 #### setAutobadgeEnabled(Boolean enabled, callback)
 **Note:** iOS only
 
-Set whether the UA Autobadge feature is enabled.
+Set whether the UA Auto badge feature is enabled.
 
 #### setBadgeNumber(Int badge, callback)
 **Note:** iOS only
 
-Set the current application badge number
+Set the current application badge number.
 
 #### resetBadge(callback)
 **Note:** iOS only
 
-Reset the badge number to zero
+Reset the badge number to zero.
 
 #### clearNotifications(callback)
 **Note:** Android only
@@ -341,7 +361,7 @@ Event:
 
     {
         error: <Error message when registration failed>,
-        pushID: <Push address>
+        channelID: <Push address>
     }
 
 This event is triggered when your application receives a registration response from Urban Airship.
@@ -350,7 +370,7 @@ This event is triggered when your application receives a registration response f
         if (event.error) {
             console.log('There was an error registering for push notifications.');
         } else {
-            console.log("Registered with ID: " + event.pushID);
-        }
+            console.log("Registered with ID: " + event.channelID);
+        } 
     });
 
