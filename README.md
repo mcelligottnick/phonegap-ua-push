@@ -1,10 +1,13 @@
 # Urban Airship PhoneGap/Cordova Plugin modified for AppGyver Steroids
 
-### Platform Support
+This plugin supports PhoneGap/Cordova apps running on both iOS and Android. Full documentation is
+available [here](http://docs.urbanairship.com/platform/phonegap.html).
 
 This plugin supports apps running on iOS.
+Requirements:
+ - Cordova 3.4.0+
 
-### Version Requirements
+## Contributing Code
 
 This plugin is meant to work with AppGyver Steroids 3.1.0+.
 This plugin is meant to work with Cordova 3.4.0+ and the latest version of the Urban Airship library.
@@ -53,164 +56,38 @@ Please follow the AppGyver Push Notification Guide (#TODO: Link here) for inform
     // Register for any urban airship events
     document.addEventListener("urbanairship.registration", function (event) {
         if (event.error) {
-            console.log('There was an error registering for push notifications');
+            console.log('There was an error registering for push notifications')
         } else {
-            console.log("Registered with ID: " + event.channelID);
+            console.log("Registered with ID: " + event.channelID)
         } 
     }, false)
     
     document.addEventListener("urbanairship.push", function (event) {
         console.log("Incoming push: " + event.message)
     }, false)
-    
+
     // Set tags on a device, that you can push to
-    // https://docs.urbanairship.com/display/DOCS/Server%3A+Tag+API
     UAirship.setTags(["loves_cats", "shops_for_games"], function () {
-        UAirship.getTags(function (obj) {
-            obj.tags.forEach(function (tag) {
-                console.log("Tag: " + tag);
-            });
-        });
-    });
-    
+        UAirship.getTags(function (tags) {
+            tags.forEach(function (tag) {
+                console.log("Tag: " + tag)
+            })
+        })
+    })
+
     // Set an alias, this lets you tie a device to a user in your system
-    // https://docs.urbanairship.com/display/DOCS/Server%3A+iOS+Push+API#ServeriOSPushAPI-Alias
     UAirship.setAlias("awesomeuser22", function () {
         UAirship.getAlias(function (alias) {
             console.log("The user formerly known as " + alias)
-        });
-    });
-    
-    // Check if user notifications are enabled
-    UAirship.isUserNotificationsEnabled(function (enabled) {
-        if (enabled) {
-            console.log("User notifications are enabled! Fire away!");
-        }
+        })
     })
 
-A thing to remember: All certificates must be created for Apple's production push notification service! Developer certificates are only for Xcode. Since Build Service will provide you with an ad hoc build, you will need to set up everything as if you were running a production app. Likewise with Urban Airship: You need to configure your application to act in production mode.
-
-
-## Data objects
-
-The Urban Airship javascript API provides standard instances for some of our data. This allows us to clearly explain what kind of data we're working with when we pass it around throughout the API.
-
-#### Push
-
-    Push = {
-        message: "Your team just scored!",
-        extras: {
-            "url": "/game/5555"
-        }
-    }
-
-A push is an object that contains the data associated with a Push. The extras dictionary can contain arbitrary key and value data, that you can use inside your application.
-
-#### Quiet Time
-
-    // Quiet time set to 10PM - 6AM
-    QuietTime = {
-        startHour: 22,
-        startMinute: 0,
-        endHour: 6,
-        endMinute: 0
-    }
-
-## API
-
-**All methods without a return value return undefined**
-
-### Top-level calls
-
-#### takeOff()
-
-Initialize plugin in the context of the calling WebView.
-This is different to Cordova, where the application only has one WebView.
-
-#### enablePush()
-
-Enable push on the device. This sends a registration to the backend server.
-
-#### disablePush()
-
-Disable push on the device. You will no longer be able to recieve push notifications.
-
-#### setUserNotificationsEnabled()
-
-Enables or disables user notifications on the device. This sends a registration to the back end server.
-
-#### setLocationEnabled()
-
-Enables or disables Urban Airship location services on the device.
-
-#### setBackgroundLocationEnabled()
-
-Enables or disables background location on the device.
-
-#### setNotificationTypes(bitmask)
-**Note::** iOS Only
-
-On iOS, registration for push requires specifying what combination of badges, sound and
-alerts are desired. This function must be explicitly called in order to begin the
-registration process. For example:
-
-    UAirship.setNotificationTypes(UAirship.notificationType.sound | UAirship.notificationType.alert)
-
-*Available notification types:*
-
-* notificationType.sound
-* notificationType.alert
-* notificationType.badge
-
-### Status Functions
-
-*Callback arguments:* (Boolean status)
-
-All status callbacks are passed a boolean indicating the result of the request:
-
-    UAirship.isUserNotificationsEnabled(function(isEnabled) {
-        if (isEnabled) {
-            $('#pushEnabled').prop("checked", true)
-        }
+    // Enable user notifications (will prompt the user to accept push notifications)
+    UAirship.setUserNotificationsEnabled(true, function (enabled) {
+        console.log("User notifications are enabled! Fire away!")
     })
 
-#### isUserNotificationsEnabled(callback)
-
-*Callback arguments* (Boolean enabled)
-
-Indicates whether user notifications are enabled.
-
-#### isSoundEnabled(callback)
-**Note:** Android Only
-
-*Callback arguments:* (Boolean enabled)
-
-Indicates whether sound is enabled.
-
-#### isVibrateEnabled(callback)
-**Note:** Android Only
-
-*Callback arguments:* (Boolean enabled)
-
-Indicates whether vibration is enabled.
-
-#### isQuietTimeEnabled(callback)
-
-*Callback arguments:* (Boolean enabled)
-
-Indicates whether Quiet Time is enabled.
-
-#### isAnalyticsEnabled(callback)
-
-*Callback arguments:* (Boolean enabled)
-
-Indicates whether analytics is enabled.
-
-#### isLocationEnabled(callback)
-
-*Callback arguments:* (Boolean enabled)
-
-Indicates whether location is enabled.
+## Sample
 
 #### isBackgroundLocationEnabled(callback)
 
@@ -358,14 +235,6 @@ This event is triggered when a push notification is received.
 ### Registration
 
 Event:
-
-    {
-        error: <Error message when registration failed>,
-        channelID: <Push address>
-    }
-
-This event is triggered when your application receives a registration response from Urban Airship.
-
     document.addEventListener('urbanairship.registration', function(event) {
         if (event.error) {
             console.log('There was an error registering for push notifications.');
@@ -373,4 +242,3 @@ This event is triggered when your application receives a registration response f
             console.log("Registered with ID: " + event.channelID);
         } 
     });
-
