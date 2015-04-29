@@ -5,7 +5,8 @@ available [here](http://docs.urbanairship.com/platform/phonegap.html).
 
 This plugin supports apps running on iOS.
 Requirements:
- - Cordova 3.4.0+
+ - Cordova 5.0.0+, Cordova Android 4.0.0+, and Cordova iOS 3.8.0+
+ - [GCM Setup](http://docs.urbanairship.com/platform/android.html#gcm-setup) or [APNS Setup](http://docs.urbanairship.com/platform/ios.html#apple-setup)
 
 ## Contributing Code
 
