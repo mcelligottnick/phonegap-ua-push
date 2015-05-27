@@ -42,7 +42,8 @@ Differences to the original include:
         <!-- Enable push when the application launches -->
         <preference name="com.urbanairship.enable_push_onlaunch" value="true | false" />
 		
-        <!-- Disable Analytics when the application launches -->
+        <!-- Enable Analytics when the application launches -->
+        <!-- Warning: Features that depend on analytics being enabled may not work properly if analytics is disabled (reports, location segmentation, region triggers, push to local time). -->
         <preference name="com.urbanairship.enable_analytics" value="true | false" />
 
   Note: Your application will always be in production mode, since AppGyver Build Service will give an adhoc build or a custom scanner.
