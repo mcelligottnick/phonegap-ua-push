@@ -46,6 +46,12 @@ Differences to the original include:
         <!-- Warning: Features that depend on analytics being enabled may not work properly if analytics is disabled (reports, location segmentation, region triggers, push to local time). -->
         <preference name="com.urbanairship.enable_analytics" value="true | false" />
 
+        <!-- Override the Android notification icon -->
+        <preference name="com.urbanairship.notification_icon" value="ic_notification" />
+        
+        <!-- Override the Android notification sound (sound file should be in res/raw)-->
+        <preference name="com.urbanairship.notification_sound" value="push" />
+
   Note: Your application will always be in production mode, since AppGyver Build Service will give an adhoc build or a custom scanner.
 
 3. If your app supports Android API < 14, then you have to manually instrument any Android Activities to
